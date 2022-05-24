@@ -30,7 +30,7 @@
             v-if="(showText || $slots.default) && textInside"
             :class="ns.be('bar', 'innerText')"
           >
-            <slot v-bind="slotData">
+            <slot :percentage="percentage">
               <span>{{ content }}</span>
             </slot>
           </div>
@@ -68,7 +68,7 @@
       :class="ns.e('text')"
       :style="{ fontSize: `${progressTextSize}px` }"
     >
-      <slot v-bind="slotData">
+      <slot :percentage="percentage">
         <span v-if="!status">{{ content }}</span>
         <el-icon v-else><component :is="statusIcon" /></el-icon>
       </slot>
@@ -96,7 +96,7 @@ defineOptions({
   name: 'ElProgress',
 })
 
-const COLOR_STATUS_MAP = {
+const STATUS_COLOR_MAP = {
   success: '#13ce66',
   exception: '#ff4949',
   warning: '#e6a23c',
@@ -107,13 +107,11 @@ const props = defineProps(progressProps)
 
 const ns = useNamespace('progress')
 
-const barStyle = computed(
-  (): CSSProperties => ({
-    width: `${props.percentage}%`,
-    animationDuration: `${props.duration}s`,
-    backgroundColor: getCurrentColor(props.percentage),
-  })
-)
+const barStyle = computed<CSSProperties>(() => ({
+  width: `${props.percentage}%`,
+  animationDuration: `${props.duration}s`,
+  backgroundColor: getCurrentColor(props.percentage),
+}))
 
 const relativeStrokeWidth = computed(() =>
   ((props.strokeWidth / props.width) * 100).toFixed(1)
@@ -125,9 +123,8 @@ const radius = computed(() => {
       `${50 - Number.parseFloat(relativeStrokeWidth.value) / 2}`,
       10
     )
-  } else {
-    return 0
   }
+  return 0
 })
 
 const trackPath = computed(() => {
@@ -150,30 +147,26 @@ const strokeDashoffset = computed(() => {
   return `${offset}px`
 })
 
-const trailPathStyle = computed(
-  (): CSSProperties => ({
-    strokeDasharray: `${perimeter.value * rate.value}px, ${perimeter.value}px`,
-    strokeDashoffset: strokeDashoffset.value,
-  })
-)
+const trailPathStyle = computed<CSSProperties>(() => ({
+  strokeDasharray: `${perimeter.value * rate.value}px, ${perimeter.value}px`,
+  strokeDashoffset: strokeDashoffset.value,
+}))
 
-const circlePathStyle = computed(
-  (): CSSProperties => ({
-    strokeDasharray: `${
-      perimeter.value * rate.value * (props.percentage / 100)
-    }px, ${perimeter.value}px`,
-    strokeDashoffset: strokeDashoffset.value,
-    transition:
-      'stroke-dasharray 0.6s ease 0s, stroke 0.6s ease, opacity ease 0.6s',
-  })
-)
+const circlePathStyle = computed<CSSProperties>(() => ({
+  strokeDasharray: `${
+    perimeter.value * rate.value * (props.percentage / 100)
+  }px, ${perimeter.value}px`,
+  strokeDashoffset: strokeDashoffset.value,
+  transition:
+    'stroke-dasharray 0.6s ease 0s, stroke 0.6s ease, opacity ease 0.6s',
+}))
 
 const stroke = computed(() => {
   let ret: string
   if (props.color) {
     ret = getCurrentColor(props.percentage)
   } else {
-    ret = COLOR_STATUS_MAP[props.status] || COLOR_STATUS_MAP.default
+    ret = STATUS_COLOR_MAP[props.status] || STATUS_COLOR_MAP.default
   }
   return ret
 })
@@ -225,10 +218,4 @@ const getCurrentColor = (percentage: number) => {
     return colors[colors.length - 1]?.color
   }
 }
-
-const slotData = computed(() => {
-  return {
-    percentage: props.percentage,
-  }
-})
 </script>
